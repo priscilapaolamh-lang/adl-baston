@@ -1,36 +1,45 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ADL Grupo Independiente Bastón
 
-## Getting Started
+Sistema de gestión para un grupo de bastoneras (majorettes). Permite a la directora publicar eventos y ensayos, y a las bastoneras confirmar asistencia y actualizar su perfil.
 
-First, run the development server:
+## Demo en vivo
+
+[https://adl-baston.vercel.app](https://adl-baston.vercel.app) *(próximamente)*
+
+## Capturas de pantalla
+
+*(Se agregarán cuando la interfaz esté completa)*
+
+## Stack tecnológico
+
+- **Next.js 14** (App Router)
+- **TypeScript**
+- **Tailwind CSS**
+- **Supabase** (PostgreSQL + Auth)
+- **Vercel** (despliegue)
+
+## Roles de usuario
+
+- **Bastonera (Rol 1)**
+  - Ver calendario de eventos/ensayos
+  - Confirmar asistencia a eventos
+  - Editar su propio perfil (teléfono, contacto de emergencia, talla de uniforme)
+
+- **Directora / Coordinadora (Rol 2)**
+  - Crear, editar y eliminar eventos
+  - Ver listado de todas las bastoneras
+  - Ver quién se apuntó a cada evento
+
+## Modelo de datos
+
+- **profiles**: Extiende `auth.users`. Guarda el rol, nombre, teléfono, contacto de emergencia y talla de uniforme.
+- **events**: Eventos/ensayos con título, descripción, fecha, ubicación y creador (directora).
+- **event_attendees**: Tabla puente que relaciona bastoneras con eventos, con estado de asistencia.
+
+## Instalación local
 
 ```bash
+git clone https://github.com/priscilapaolamh-lang/adl-baston.git
+cd adl-baston
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
