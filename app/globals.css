@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 :root {
-  --color-aqua-claro: #80DEEA;  /* Verde agua/celeste claro */
-  --color-aqua-oscuro: #26C6DA;
+  --color-aqua-claro: #3de8ee;
+  --color-aqua-oscuro: #4fdace;
   --color-fondo: #0A0F0E;
   --color-texto-blanco: #FFFFFF;
   --color-texto-negro: #1A1A1A;
@@ -72,33 +72,72 @@ body::before {
   color: var(--color-aqua-claro);
 }
 
-/* Tarjetas de eventos con el color aqua corregido */
+/* Tarjetas de eventos (pequeñas) */
 .event-card {
-  background: var(--color-aqua-claro);  /* Aqua claro (verde agua/celeste) */
+  background: var(--color-aqua-claro);
   color: var(--color-texto-negro);
-  border-radius: 16px;
-  padding: 1.25rem;
-  box-shadow: 0 8px 24px rgba(0, 188, 212, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  transition: transform 0.25s, box-shadow 0.25s;
+  border-radius: 14px;
+  padding: 1rem;
+  box-shadow: 0 6px 16px rgba(0, 188, 212, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   font-weight: 700;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 220px;
+  min-height: 220px;
+  aspect-ratio: 1/1;
+  transition: transform 0.3s, box-shadow 0.3s;
+  overflow: hidden;
+  margin: 0 auto;  /* Centra cada tarjeta en su celda */
 }
 
 .event-card:hover {
-  transform: translateY(-6px) scale(1.01);
-  box-shadow: 0 12px 32px rgba(128, 222, 234, 0.40);
+  transform: translateY(-8px) scale(1.04);
+  box-shadow: 0 16px 40px rgba(128, 222, 234, 0.45);
 }
 
 .event-card h3 {
+  font-size: 0.9rem;
   font-weight: 800;
   color: var(--color-texto-negro);
+  margin-bottom: 0.3rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .event-card p {
+  font-size: 0.7rem;
   font-weight: 600;
   color: #00363A;
+  margin: 0.15rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
+.clima-box {
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  padding: 0.4rem 0.6rem;
+  margin-top: 0.4rem;
+  border-left: 4px solid var(--color-texto-blanco);
+  overflow: hidden;
+}
+
+.clima-temp, .clima-desc {
+  font-size: 0.75rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 /* Buscador */
 .input-search {
   background: rgba(0, 0, 0, 0.4);
@@ -125,20 +164,22 @@ body::before {
 /* Clima */
 .clima-box {
   background: rgba(0, 0, 0, 0.10);
-  border-radius: 10px;
-  padding: 0.5rem 0.75rem;
-  margin-top: 0.5rem;
-  border-left: 4px solid var(--color-texto-blanco);
+  border-radius: 8px;
+  padding: 0.4rem 0.6rem;
+  margin-top: 0.4rem;
+  border-left: 3px solid var(--color-texto-blanco);
 }
 
 .clima-temp {
   font-weight: 800;
   color: var(--color-texto-negro);
+  font-size: 0.8rem;
 }
 
 .clima-desc {
   font-weight: 600;
   color: #00363A;
+  font-size: 0.75rem;
 }
 
 /* Títulos */
