@@ -83,56 +83,63 @@ export default function Home() {
   );
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-6">Bienvenido a ADL Bastón</h1>
-      <p className="text-gray-600 mb-8">
-        Gestión para ensayos, eventos y comunicaciones de tu grupo de bastoneras.
-      </p>
+    <div className="container mx-auto px-4 py-6">
+      {/* ENCABEZADO PRINCIPAL CON TÍTULO GIGANTE */}
+      <div className="text-center mb-8">
+        <h1 className="text-7xl sm:text-8xl md:text-9xl font-black text-white leading-none tracking-tight">
+          ADL ✦ <span className="text-[#80DEEA]">Aqua Diamond Legacy</span>
+        </h1>
+        <p className="text-xl md:text-2xl font-light text-white/80 mt-2 tracking-wide">
+          Grupo Independiente de Bastoneras
+        </p>
+      </div>
 
-      <div className="mb-8">
+      {/* Buscador alineado a la derecha */}
+      <div className="flex justify-end mb-6">
         <input
           type="text"
-          placeholder="🔍 Buscar eventos por título, ubicación o ciudad..."
+          placeholder="🔍 Buscar eventos..."
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
-          className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="input-search w-full md:w-80"
         />
       </div>
 
-      {cargando && <p className="text-gray-500">Cargando eventos y clima...</p>}
-
+      {cargando && <p className="text-center text-white font-bold">Cargando eventos...</p>}
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4">
+        <div className="bg-red-500/20 border border-red-500 text-white px-4 py-3 rounded-lg mb-4 font-bold">
           <p>{error}</p>
         </div>
       )}
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {eventosFiltrados.length > 0 ? (
           eventosFiltrados.map((evento) => (
-            <div key={evento.id} className="bg-white p-4 rounded-lg shadow-md border border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-800">{evento.title}</h3>
-              <p className="text-sm text-gray-500 mt-1">📅 {evento.date}</p>
-              <p className="text-sm text-gray-500">📍 {evento.location}</p>
-              <p className="text-sm text-gray-500">🏙️ {evento.city}</p>
-              
+            <div key={evento.id} className="event-card">
+              <h3 className="text-lg font-extrabold text-black">{evento.title}</h3>
+              <p className="text-sm font-bold text-black/80 mt-1">📅 {evento.date}</p>
+              <p className="text-sm font-bold text-black/80">📍 {evento.location}</p>
+              <p className="text-sm font-bold text-black/80">🏙️ {evento.city}</p>
+
               {evento.clima ? (
-                <div className="mt-2 p-2 bg-blue-50 rounded-lg">
-                  <p className="text-sm font-medium text-blue-800">
-                    🌤️ {evento.clima.temperatura}°C - {evento.clima.descripcion}
+                <div className="clima-box">
+                  <p className="text-sm font-extrabold text-black flex items-center gap-1">
+                    <span>🌤️</span>
+                    <span className="clima-temp">{evento.clima.temperatura}°C</span>
+                    <span className="clima-desc">- {evento.clima.descripcion}</span>
                   </p>
-                  <p className="text-xs text-blue-600">
+                  <p className="text-xs font-bold text-black/80">
                     Sensación: {evento.clima.sensacion}°C • Humedad: {evento.clima.humedad}%
                   </p>
                 </div>
               ) : (
-                <p className="text-sm text-gray-500 mt-2">⏳ Clima no disponible</p>
+                <p className="text-sm font-bold text-black/60 mt-2">⏳ Clima no disponible</p>
               )}
             </div>
           ))
         ) : (
-          <p className="text-gray-500 col-span-full">
-            {cargando ? 'Cargando eventos...' : 'No se encontraron eventos que coincidan con la búsqueda.'}
+          <p className="text-white col-span-full text-center font-bold">
+            {cargando ? 'Cargando...' : 'No hay eventos que coincidan con la búsqueda.'}
           </p>
         )}
       </div>
