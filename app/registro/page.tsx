@@ -31,7 +31,7 @@ export default function Home() {
   const [eventos, setEventos] = useState<EventoConClima[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [perfil, setPerfil] = useState<any>(null); // <--- Estado para el perfil
+  const [perfil, setPerfil] = useState<any>(null);
 
   useEffect(() => {
     const cargarEventos = async () => {
@@ -39,7 +39,7 @@ export default function Home() {
       setError(null);
 
       try {
-        // 1. Cargar eventos desde Supabase
+        // Cargar eventos desde Supabase
         const { data, error: supabaseError } = await supabase
           .from('events')
           .select('*')
@@ -56,7 +56,6 @@ export default function Home() {
           return;
         }
 
-        // 2. Para cada evento, obtener el clima
         const eventosConClima = await Promise.all(
           data.map(async (evento: Evento) => {
             try {
@@ -70,18 +69,15 @@ export default function Home() {
 
         setEventos(eventosConClima);
 
-        // 3. Cargar perfil del usuario autenticado
+        // Cargar perfil del usuario autenticado
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
-          const { data: perfilData, error: perfilError } = await supabase
+          const { data: perfilData } = await supabase
             .from('profiles')
             .select('full_name')
             .eq('id', session.user.id)
             .single();
-
-          if (perfilError) {
-            console.error('Error al cargar perfil:', perfilError);
-          } else if (perfilData) {
+          if (perfilData) {
             setPerfil(perfilData);
           }
         }
