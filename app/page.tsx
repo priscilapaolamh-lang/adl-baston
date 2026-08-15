@@ -31,7 +31,7 @@ export default function Home() {
   const [eventos, setEventos] = useState<EventoConClima[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [perfil, setPerfil] = useState<any>(null); // <--- Estado para el perfil
+  const [perfil, setPerfil] = useState<any>(null);
 
   useEffect(() => {
     const cargarEventos = async () => {
@@ -39,7 +39,6 @@ export default function Home() {
       setError(null);
 
       try {
-        // 1. Cargar eventos desde Supabase
         const { data, error: supabaseError } = await supabase
           .from('events')
           .select('*')
@@ -56,7 +55,6 @@ export default function Home() {
           return;
         }
 
-        // 2. Para cada evento, obtener el clima
         const eventosConClima = await Promise.all(
           data.map(async (evento: Evento) => {
             try {
@@ -70,18 +68,14 @@ export default function Home() {
 
         setEventos(eventosConClima);
 
-        // 3. Cargar perfil del usuario autenticado
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
-          const { data: perfilData, error: perfilError } = await supabase
+          const { data: perfilData } = await supabase
             .from('profiles')
             .select('full_name')
             .eq('id', session.user.id)
             .single();
-
-          if (perfilError) {
-            console.error('Error al cargar perfil:', perfilError);
-          } else if (perfilData) {
+          if (perfilData) {
             setPerfil(perfilData);
           }
         }
@@ -95,6 +89,23 @@ export default function Home() {
     cargarEventos();
   }, []);
 
+  const handleEliminar = async (id: string) => {
+    if (!confirm('¿Estás seguro de que quieres eliminar este evento?')) return;
+
+    try {
+      const { error } = await supabase
+        .from('events')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setEventos(eventos.filter((e) => e.id !== id));
+    } catch (err: any) {
+      alert('Error al eliminar el evento: ' + err.message);
+    }
+  };
+
   const eventosFiltrados = eventos.filter((evento) =>
     evento.title.toLowerCase().includes(busqueda.toLowerCase()) ||
     evento.location.toLowerCase().includes(busqueda.toLowerCase()) ||
@@ -103,7 +114,6 @@ export default function Home() {
 
   return (
     <div className="container mx-auto px-4 py-6">
-      {/* Buscador alineado a la derecha */}
       <div className="flex justify-end mb-6">
         <input
           type="text"
@@ -114,7 +124,6 @@ export default function Home() {
         />
       </div>
 
-      {/* Mensaje de bienvenida */}
       {perfil && (
         <div className="text-white text-center mb-6">
           <h2 className="text-2xl font-bold">¡Bienvenida, {perfil.full_name}!</h2>
@@ -155,6 +164,21 @@ export default function Home() {
               ) : (
                 <p className="text-xs font-bold text-black/60 mt-2">⏳ Clima no disponible</p>
               )}
+
+              <div className="flex justify-between mt-3 gap-2">
+                <a
+                  href={`/eventos/${evento.id}/editar`}
+                  className="text-xs bg-blue-500/20 hover:bg-blue-500/30 text-white px-3 py-1 rounded-full transition"
+                >
+                  ✏️ Editar
+                </a>
+                <button
+                  onClick={() => handleEliminar(evento.id)}
+                  className="text-xs bg-red-500/20 hover:bg-red-500/30 text-white px-3 py-1 rounded-full transition"
+                >
+                  🗑️ Eliminar
+                </button>
+              </div>
             </div>
           ))
         ) : (
