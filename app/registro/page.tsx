@@ -1,164 +1,143 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { obtenerClima } from '@/lib/clima';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
-type Evento = {
-  id: string;
-  title: string;
-  description: string | null;
-  date: string;
-  location: string;
-  city: string;
-  created_by: string;
-};
-
-type EventoConClima = Evento & {
-  clima?: {
-    temperatura: number;
-    sensacion: number;
-    descripcion: string;
-    humedad: number;
-    ciudad: string;
-    pais: string;
-    icono: string;
-  } | null;
-};
-
-export default function Home() {
-  const [busqueda, setBusqueda] = useState('');
-  const [eventos, setEventos] = useState<EventoConClima[]>([]);
-  const [cargando, setCargando] = useState(true);
+export default function Registro() {
+  const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [nombre, setNombre] = useState('');
+  const [telefono, setTelefono] = useState('');
+  const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [perfil, setPerfil] = useState<any>(null);
+  const [exito, setExito] = useState(false);
 
-  useEffect(() => {
-    const cargarEventos = async () => {
-      setCargando(true);
-      setError(null);
+  const handleRegistro = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCargando(true);
+    setError(null);
+    setExito(false);
 
-      try {
-        // Cargar eventos desde Supabase
-        const { data, error: supabaseError } = await supabase
-          .from('events')
-          .select('*')
-          .order('date', { ascending: true });
+    try {
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: nombre,
+            phone: telefono,
+          },
+        },
+      });
 
-        if (supabaseError) {
-          throw new Error(`Error al cargar eventos: ${supabaseError.message}`);
-        }
+      if (authError) throw authError;
 
-        if (!data || data.length === 0) {
-          setError('No hay eventos disponibles.');
-          setEventos([]);
-          setCargando(false);
-          return;
-        }
+      if (authData.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            id: authData.user.id,
+            full_name: nombre,
+            phone: telefono,
+            role: 'bastonera',
+            uniform_size: 'M',
+          });
 
-        const eventosConClima = await Promise.all(
-          data.map(async (evento: Evento) => {
-            try {
-              const clima = await obtenerClima(evento.city);
-              return { ...evento, clima };
-            } catch {
-              return { ...evento, clima: null };
-            }
-          })
-        );
+        if (profileError) throw profileError;
 
-        setEventos(eventosConClima);
-
-        // Cargar perfil del usuario autenticado
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          const { data: perfilData } = await supabase
-            .from('profiles')
-            .select('full_name')
-            .eq('id', session.user.id)
-            .single();
-          if (perfilData) {
-            setPerfil(perfilData);
-          }
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Error al cargar los eventos');
-      } finally {
-        setCargando(false);
+        setExito(true);
+        setTimeout(() => router.push('/login'), 2000);
       }
-    };
-
-    cargarEventos();
-  }, []);
-
-  const eventosFiltrados = eventos.filter((evento) =>
-    evento.title.toLowerCase().includes(busqueda.toLowerCase()) ||
-    evento.location.toLowerCase().includes(busqueda.toLowerCase()) ||
-    evento.city.toLowerCase().includes(busqueda.toLowerCase())
-  );
+    } catch (err: any) {
+      setError(err.message || 'Error al registrarse. Intenta de nuevo.');
+    } finally {
+      setCargando(false);
+    }
+  };
 
   return (
-    <div className="container mx-auto px-4 py-6">
-      {/* Buscador alineado a la derecha */}
-      <div className="flex justify-end mb-6">
-        <input
-          type="text"
-          placeholder="🔍 Buscar eventos..."
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
-          className="input-search w-64 md:w-72"
-        />
-      </div>
+    <div className="max-w-md mx-auto mt-12 p-6 bg-white/10 backdrop-blur-sm rounded-xl shadow-lg">
+      <h1 className="text-2xl font-bold text-white text-center mb-6">Crear Cuenta</h1>
 
-      {/* Mensaje de bienvenida */}
-      {perfil && (
-        <div className="text-white text-center mb-6">
-          <h2 className="text-2xl font-bold">¡Bienvenida, {perfil.full_name}!</h2>
-          <p className="text-white/70">Aquí están los próximos eventos y actividades del grupo.</p>
+      <form onSubmit={handleRegistro} className="space-y-4">
+        <div>
+          <label className="block text-white text-sm font-semibold mb-1">Nombre completo</label>
+          <input
+            type="text"
+            value={nombre}
+            onChange={(e) => setNombre(e.target.value)}
+            required
+            className="w-full px-4 py-2 rounded-lg bg-white/20 text-white border border-white/30 focus:outline-none focus:border-white"
+            placeholder="Ej: Ana Bastonera"
+          />
         </div>
-      )}
 
-      {cargando && <p className="text-center text-white font-bold">Cargando eventos...</p>}
-      {error && (
-        <div className="bg-red-500/20 border border-red-500 text-white px-4 py-3 rounded-lg mb-4 font-bold">
-          <p>{error}</p>
+        <div>
+          <label className="block text-white text-sm font-semibold mb-1">Correo electrónico</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="w-full px-4 py-2 rounded-lg bg-white/20 text-white border border-white/30 focus:outline-none focus:border-white"
+            placeholder="tu@email.com"
+          />
         </div>
-      )}
 
-      <div className="flex flex-wrap justify-center gap-12 max-w-7xl mx-auto">
-        {eventosFiltrados.length > 0 ? (
-          eventosFiltrados.map((evento) => (
-            <div
-              key={evento.id}
-              className="event-card w-64 h-auto flex flex-col hover:scale-105 hover:-translate-y-1 transition-all duration-200"
-            >
-              <h3 className="text-base font-extrabold text-black">{evento.title}</h3>
-              <p className="text-xs font-bold text-black/80 mt-1">📅 {evento.date}</p>
-              <p className="text-xs font-bold text-black/80">📍 {evento.location}</p>
-              <p className="text-xs font-bold text-black/80">🏙️ {evento.city}</p>
+        <div>
+          <label className="block text-white text-sm font-semibold mb-1">Teléfono</label>
+          <input
+            type="tel"
+            value={telefono}
+            onChange={(e) => setTelefono(e.target.value)}
+            className="w-full px-4 py-2 rounded-lg bg-white/20 text-white border border-white/30 focus:outline-none focus:border-white"
+            placeholder="0987654321"
+          />
+        </div>
 
-              {evento.clima ? (
-                <div className="clima-box">
-                  <p className="text-xs font-extrabold text-black flex items-center gap-1">
-                    <span>🌤️</span>
-                    <span className="clima-temp">{evento.clima.temperatura}°C</span>
-                    <span className="clima-desc">- {evento.clima.descripcion}</span>
-                  </p>
-                  <p className="text-xs font-bold text-black/80">
-                    Sensación: {evento.clima.sensacion}°C • Humedad: {evento.clima.humedad}%
-                  </p>
-                </div>
-              ) : (
-                <p className="text-xs font-bold text-black/60 mt-2">⏳ Clima no disponible</p>
-              )}
-            </div>
-          ))
-        ) : (
-          <p className="text-white col-span-full text-center font-bold">
-            {cargando ? 'Cargando...' : 'No hay eventos que coincidan con la búsqueda.'}
-          </p>
+        <div>
+          <label className="block text-white text-sm font-semibold mb-1">Contraseña</label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            minLength={6}
+            className="w-full px-4 py-2 rounded-lg bg-white/20 text-white border border-white/30 focus:outline-none focus:border-white"
+            placeholder="Mínimo 6 caracteres"
+          />
+        </div>
+
+        {error && (
+          <div className="bg-red-500/20 border border-red-500 text-white px-4 py-2 rounded-lg text-sm">
+            {error}
+          </div>
         )}
-      </div>
+
+        {exito && (
+          <div className="bg-green-500/20 border border-green-500 text-white px-4 py-2 rounded-lg text-sm">
+            ✅ Registro exitoso. Redirigiendo al login...
+          </div>
+        )}
+
+        <button
+          type="submit"
+          disabled={cargando}
+          className="w-full py-2 px-4 bg-[#1ABC9C] hover:bg-[#16A085] text-white font-bold rounded-lg transition disabled:opacity-50"
+        >
+          {cargando ? 'Registrando...' : 'Registrarse'}
+        </button>
+      </form>
+
+      <p className="text-center text-white/70 text-sm mt-4">
+        ¿Ya tienes cuenta?{' '}
+        <Link href="/login" className="text-[#1ABC9C] hover:underline font-semibold">
+          Inicia sesión
+        </Link>
+      </p>
     </div>
   );
 }

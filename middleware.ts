@@ -5,7 +5,6 @@ import type { NextRequest } from 'next/server'
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next()
   
-  // Crear cliente de Supabase con la cookie de la sesión
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -32,10 +31,8 @@ export async function middleware(req: NextRequest) {
     }
   )
   
-  // Obtener la sesión del usuario
   const { data: { session } } = await supabase.auth.getSession()
 
-  // Rutas que requieren autenticación
   const rutasProtegidas = ['/admin', '/perfil']
   const url = req.nextUrl.pathname
 
@@ -54,7 +51,6 @@ export async function middleware(req: NextRequest) {
   return res
 }
 
-// Configurar las rutas donde se ejecutará el middleware
 export const config = {
   matcher: ['/admin/:path*', '/perfil/:path*', '/login', '/registro']
 }

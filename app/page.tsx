@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { obtenerClima } from '@/lib/clima';
+import Link from 'next/link';
 
 type Evento = {
   id: string;
@@ -32,6 +33,8 @@ export default function Home() {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [perfil, setPerfil] = useState<any>(null);
+  const [rol, setRol] = useState<string | null>(null);
+  const [sesion, setSesion] = useState<any>(null);
 
   useEffect(() => {
     const cargarEventos = async () => {
@@ -39,6 +42,15 @@ export default function Home() {
       setError(null);
 
       try {
+        // Verificar sesión primero
+        const { data: { session } } = await supabase.auth.getSession();
+        setSesion(session);
+
+        if (!session) {
+          setCargando(false);
+          return;
+        }
+
         const { data, error: supabaseError } = await supabase
           .from('events')
           .select('*')
@@ -68,15 +80,15 @@ export default function Home() {
 
         setEventos(eventosConClima);
 
-        const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
           const { data: perfilData } = await supabase
             .from('profiles')
-            .select('full_name')
+            .select('*')
             .eq('id', session.user.id)
             .single();
           if (perfilData) {
             setPerfil(perfilData);
+            setRol(perfilData.role);
           }
         }
       } catch (err) {
@@ -112,6 +124,30 @@ export default function Home() {
     evento.city.toLowerCase().includes(busqueda.toLowerCase())
   );
 
+  // Si no hay sesión, mostrar mensaje de acceso restringido
+  if (!sesion) {
+    return (
+      <div className="max-w-2xl mx-auto mt-20 p-8 bg-white/10 backdrop-blur-sm rounded-xl shadow-lg text-center">
+        <h1 className="text-3xl font-bold text-white mb-4">🔒 Acceso Restringido</h1>
+        <p className="text-white/70 mb-6">
+          Para ver los eventos y actividades del grupo, debes iniciar sesión.
+        </p>
+        <Link
+          href="/login"
+          className="inline-block bg-[#1ABC9C] hover:bg-[#16A085] text-white font-bold py-3 px-8 rounded-lg transition"
+        >
+          Iniciar Sesión
+        </Link>
+        <p className="text-white/50 text-sm mt-4">
+          ¿No tienes cuenta?{' '}
+          <Link href="/registro" className="text-[#1ABC9C] hover:underline">
+            Regístrate
+          </Link>
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="flex justify-end mb-6">
@@ -127,7 +163,11 @@ export default function Home() {
       {perfil && (
         <div className="text-white text-center mb-6">
           <h2 className="text-2xl font-bold">¡Bienvenida, {perfil.full_name}!</h2>
-          <p className="text-white/70">Aquí están los próximos eventos y actividades del grupo.</p>
+          <p className="text-white/70">
+            {rol === 'directora' 
+              ? '👑 Eres directora. Puedes gestionar eventos.' 
+              : '🩰 Eres bastonera. Puedes ver los eventos.'}
+          </p>
         </div>
       )}
 
@@ -165,20 +205,22 @@ export default function Home() {
                 <p className="text-xs font-bold text-black/60 mt-2">⏳ Clima no disponible</p>
               )}
 
-              <div className="flex justify-between mt-3 gap-2">
-                <a
-                  href={`/eventos/${evento.id}/editar`}
-                  className="text-xs bg-blue-500/20 hover:bg-blue-500/30 text-white px-3 py-1 rounded-full transition"
-                >
-                  ✏️ Editar
-                </a>
-                <button
-                  onClick={() => handleEliminar(evento.id)}
-                  className="text-xs bg-red-500/20 hover:bg-red-500/30 text-white px-3 py-1 rounded-full transition"
-                >
-                  🗑️ Eliminar
-                </button>
-              </div>
+              {rol === 'directora' && (
+                <div className="flex justify-between mt-3 gap-2">
+                  <a
+                    href={`/eventos/${evento.id}/editar`}
+                    className="text-xs bg-blue-500/20 hover:bg-blue-500/30 text-white px-3 py-1 rounded-full transition"
+                  >
+                    ✏️ Editar
+                  </a>
+                  <button
+                    onClick={() => handleEliminar(evento.id)}
+                    className="text-xs bg-red-500/20 hover:bg-red-500/30 text-white px-3 py-1 rounded-full transition"
+                  >
+                    🗑️ Eliminar
+                  </button>
+                </div>
+              )}
             </div>
           ))
         ) : (
