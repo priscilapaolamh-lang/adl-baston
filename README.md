@@ -1,45 +1,84 @@
-# ADL Grupo Independiente Bastón
+# ADL ✦ Aqua Diamond Legacy
 
-Sistema de gestión para un grupo de bastoneras (majorettes). Permite a la directora publicar eventos y ensayos, y a las bastoneras confirmar asistencia y actualizar su perfil.
+Sistema de gestión para el grupo independiente de bastoneras **ADL - Aqua Diamond Legacy**. Permite a la directora publicar y gestionar eventos, ensayos y presentaciones, mientras que las bastoneras pueden visualizar el calendario y consultar el clima de cada ubicación.
+
+---
 
 ## Demo en vivo
 
-[https://adl-baston.vercel.app](https://adl-baston.vercel.app) *(próximamente)*
+[https://adl-baston.vercel.app](https://adl-baston.vercel.app) *(Próximamente)*
+
+---
 
 ## Capturas de pantalla
 
-*(Se agregarán cuando la interfaz esté completa)*
+| Pantalla principal | Registro | Panel de administración |
+| :---: | :---: | :---: |
+| ![Pantalla principal](./screenshots/home.png) | ![Registro](./screenshots/registro.png) | ![Admin](./screenshots/admin.png) |
+
+*(Las capturas se agregarán después del deploy)*
+
+---
 
 ## Stack tecnológico
 
 - **Next.js 14** (App Router)
 - **TypeScript**
 - **Tailwind CSS**
-- **Supabase** (PostgreSQL + Auth)
-- **Vercel** (despliegue)
+- **Supabase** (PostgreSQL + Autenticación)
+- **Vercel** (Despliegue)
+- **OpenWeatherMap API** (Clima en tiempo real)
+
+---
 
 ## Roles de usuario
 
-- **Bastonera (Rol 1)**
-  - Ver calendario de eventos/ensayos
-  - Confirmar asistencia a eventos
-  - Editar su propio perfil (teléfono, contacto de emergencia, talla de uniforme)
+| Rol | Permisos |
+| :--- | :--- |
+| **Bastonera** | Visualizar eventos y calendario, buscar eventos por título, ubicación o ciudad, ver clima en tiempo real. |
+| **Directora** | Todos los permisos de bastonera + crear, editar y eliminar eventos, acceso al panel de administración. |
 
-- **Directora / Coordinadora (Rol 2)**
-  - Crear, editar y eliminar eventos
-  - Ver listado de todas las bastoneras
-  - Ver quién se apuntó a cada evento
+---
 
 ## Modelo de datos
 
-- **profiles**: Extiende `auth.users`. Guarda el rol, nombre, teléfono, contacto de emergencia y talla de uniforme.
-- **events**: Eventos/ensayos con título, descripción, fecha, ubicación y creador (directora).
-- **event_attendees**: Tabla puente que relaciona bastoneras con eventos, con estado de asistencia.
+### Tablas en Supabase
+
+1. **`profiles`** – Extiende `auth.users` con información adicional:
+   - `id` (UUID, FK → auth.users)
+   - `full_name` (text)
+   - `phone` (text)
+   - `emergency_contact` (text)
+   - `uniform_size` (text)
+   - `role` (text: `bastonera` o `directora`)
+
+2. **`events`** – Eventos y ensayos del grupo:
+   - `id` (UUID, PK)
+   - `title` (text)
+   - `description` (text)
+   - `date` (date)
+   - `location` (text)
+   - `city` (text)
+   - `created_by` (UUID, FK → profiles.id)
+
+3. **`event_attendees`** – Asistencia a eventos:
+   - `id` (UUID, PK)
+   - `event_id` (UUID, FK → events.id)
+   - `bastonera_id` (UUID, FK → profiles.id)
+   - `status` (text: `confirmed` o `pending`)
+
+### Relaciones
+
+- Un usuario (directora) puede crear muchos eventos. (1:N)
+- Una bastonera puede asistir a muchos eventos. (N:M)
+- Un evento puede tener muchas bastoneras asistentes. (N:M)
+
+---
 
 ## Instalación local
+
+### Clonar el repositorio
 
 ```bash
 git clone https://github.com/priscilapaolamh-lang/adl-baston.git
 cd adl-baston
-npm install
-npm run dev
