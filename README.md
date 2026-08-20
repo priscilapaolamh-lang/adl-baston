@@ -6,7 +6,7 @@ Sistema de gestión para el grupo independiente de bastoneras **ADL - Aqua Diamo
 
 ## Demo en vivo
 
-[https://adl-baston.vercel.app](https://adl-baston.vercel.app) *(Próximamente)*
+[https://adl-baston.vercel.app](https://adl-baston.vercel.app)
 
 ---
 
