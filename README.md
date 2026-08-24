@@ -1,6 +1,6 @@
-# ADL ✦ Aqua Diamond Legacy
+# Silver Spirit - Bastoneras
 
-Sistema de gestión para el grupo independiente de bastoneras **ADL - Aqua Diamond Legacy**. Permite a la directora publicar y gestionar eventos, ensayos y presentaciones, mientras que las bastoneras pueden visualizar el calendario y consultar el clima de cada ubicación.
+Sistema de gestión para el grupo de bastoneras **Silver Spirit**. Permite a la directora publicar y gestionar eventos, ensayos y presentaciones, mientras que las bastoneras pueden visualizar el calendario y consultar el clima de cada ubicación.
 
 ---
 

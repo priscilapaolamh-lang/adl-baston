@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { obtenerClima } from '@/lib/clima';
-import Link from 'next/link';
+import { eliminarEvento } from '@/actions/eventos';
+import { useActionState } from 'react';
 
 type Evento = {
   id: string;
@@ -35,6 +36,7 @@ export default function Home() {
   const [perfil, setPerfil] = useState<any>(null);
   const [rol, setRol] = useState<string | null>(null);
   const [sesion, setSesion] = useState<any>(null);
+  const [state, formAction, isPending] = useActionState(eliminarEvento, null);
 
   useEffect(() => {
     const cargarEventos = async () => {
@@ -42,7 +44,6 @@ export default function Home() {
       setError(null);
 
       try {
-        // Verificar sesión primero
         const { data: { session } } = await supabase.auth.getSession();
         setSesion(session);
 
@@ -101,22 +102,34 @@ export default function Home() {
     cargarEventos();
   }, []);
 
-  const handleEliminar = async (id: string) => {
-    if (!confirm('¿Estás seguro de que quieres eliminar este evento?')) return;
-
-    try {
-      const { error } = await supabase
-        .from('events')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
-      setEventos(eventos.filter((e) => e.id !== id));
-    } catch (err: any) {
-      alert('Error al eliminar el evento: ' + err.message);
+  // Efecto para recargar eventos cuando se elimina uno correctamente
+  useEffect(() => {
+    if (state?.success) {
+      const recargar = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          const { data } = await supabase
+            .from('events')
+            .select('*')
+            .order('date', { ascending: true });
+          if (data) {
+            const eventosConClima = await Promise.all(
+              data.map(async (evento: Evento) => {
+                try {
+                  const clima = await obtenerClima(evento.city);
+                  return { ...evento, clima };
+                } catch {
+                  return { ...evento, clima: null };
+                }
+              })
+            );
+            setEventos(eventosConClima);
+          }
+        }
+      };
+      recargar();
     }
-  };
+  }, [state]);
 
   const eventosFiltrados = eventos.filter((evento) =>
     evento.title.toLowerCase().includes(busqueda.toLowerCase()) ||
@@ -124,25 +137,24 @@ export default function Home() {
     evento.city.toLowerCase().includes(busqueda.toLowerCase())
   );
 
-  // Si no hay sesión, mostrar mensaje de acceso restringido
   if (!sesion) {
     return (
       <div className="max-w-2xl mx-auto mt-20 p-8 bg-white/10 backdrop-blur-sm rounded-xl shadow-lg text-center">
         <h1 className="text-3xl font-bold text-white mb-4">🔒 Acceso Restringido</h1>
         <p className="text-white/70 mb-6">
-          Para ver los eventos y actividades del grupo, debes iniciar sesión.
+          Para ver los eventos y actividades del grupo Silver Spirit, debes iniciar sesión.
         </p>
-        <Link
+        <a
           href="/login"
           className="inline-block bg-[#1ABC9C] hover:bg-[#16A085] text-white font-bold py-3 px-8 rounded-lg transition"
         >
           Iniciar Sesión
-        </Link>
+        </a>
         <p className="text-white/50 text-sm mt-4">
           ¿No tienes cuenta?{' '}
-          <Link href="/registro" className="text-[#1ABC9C] hover:underline">
+          <a href="/registro" className="text-[#1ABC9C] hover:underline">
             Regístrate
-          </Link>
+          </a>
         </p>
       </div>
     );
@@ -165,8 +177,8 @@ export default function Home() {
           <h2 className="text-2xl font-bold">¡Bienvenida, {perfil.full_name}!</h2>
           <p className="text-white/70">
             {rol === 'directora' 
-              ? '👑 Eres directora. Puedes gestionar eventos.' 
-              : '🩰 Eres bastonera. Puedes ver los eventos.'}
+              ? '👑 Eres directora. Puedes gestionar eventos del grupo Silver Spirit.' 
+              : '🩰 Eres bastonera. Puedes ver los eventos del grupo Silver Spirit.'}
           </p>
         </div>
       )}
@@ -175,6 +187,12 @@ export default function Home() {
       {error && (
         <div className="bg-red-500/20 border border-red-500 text-white px-4 py-3 rounded-lg mb-4 font-bold">
           <p>{error}</p>
+        </div>
+      )}
+
+      {state?.error && (
+        <div className="bg-red-500/20 border border-red-500 text-white px-4 py-2 rounded-lg text-sm mb-4">
+          {state.error}
         </div>
       )}
 
@@ -213,12 +231,16 @@ export default function Home() {
                   >
                     ✏️ Editar
                   </a>
-                  <button
-                    onClick={() => handleEliminar(evento.id)}
-                    className="text-xs bg-red-500/20 hover:bg-red-500/30 text-white px-3 py-1 rounded-full transition"
-                  >
-                    🗑️ Eliminar
-                  </button>
+                  <form action={formAction}>
+                    <input type="hidden" name="id" value={evento.id} />
+                    <button
+                      type="submit"
+                      disabled={isPending}
+                      className="text-xs bg-red-500/20 hover:bg-red-500/30 text-white px-3 py-1 rounded-full transition disabled:opacity-50"
+                    >
+                      {isPending ? '...' : '🗑️ Eliminar'}
+                    </button>
+                  </form>
                 </div>
               )}
             </div>

@@ -11,8 +11,8 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "ADL - Aqua Diamond Legacy",
-  description: "Grupo Independiente de Bastoneras",
+  title: "Silver Spirit - Bastoneras",
+  description: "Sistema de gestión para el grupo de bastoneras Silver Spirit",
 };
 
 export default function RootLayout({
