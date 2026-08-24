@@ -1,48 +1,79 @@
 // lib/clima.ts
+// Usando Open-Meteo API (gratuita, sin necesidad de clave)
 
-const API_KEY = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY || 'v251a7b55411cf387fafc76610fbce8d4';
-const BASE_URL = 'https://api.openweathermap.org/data/2.5/weather';
+const BASE_URL = 'https://api.open-meteo.com/v1/forecast';
 
 /**
- * Obtiene el clima actual para una ciudad usando OpenWeatherMap.
+ * Obtiene el clima actual para una ciudad usando Open-Meteo.
  * @param ciudad - Nombre de la ciudad (ej: "Quito", "Guayaquil")
  * @returns Objeto con temperatura, descripción y sensación térmica
  */
 export async function obtenerClima(ciudad: string) {
-  // Si no hay clave API, usar la clave por defecto
-  if (!API_KEY) {
-    throw new Error('La clave de OpenWeatherMap no está configurada en .env.local');
-  }
-
   try {
-    const url = `${BASE_URL}?q=${encodeURIComponent(ciudad)}&appid=${API_KEY}&units=metric&lang=es`;
-    const respuesta = await fetch(url);
+    // 1. Obtener coordenadas de la ciudad (usando Geocoding API de Open-Meteo)
+    const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(ciudad)}&count=1&language=es&format=json`;
+    const geoRespuesta = await fetch(geoUrl);
     
-    // Si la respuesta no es exitosa, lanzar error con el código
-    if (!respuesta.ok) {
-      if (respuesta.status === 404) {
-        throw new Error(`Ciudad "${ciudad}" no encontrada. Verifica el nombre.`);
-      }
-      if (respuesta.status === 401) {
-        throw new Error('Clave API inválida. Verifica tu clave de OpenWeatherMap.');
-      }
-      throw new Error(`Error al obtener el clima: ${respuesta.status} ${respuesta.statusText}`);
+    if (!geoRespuesta.ok) {
+      throw new Error(`Error al obtener coordenadas: ${geoRespuesta.status}`);
     }
 
-    const datos = await respuesta.json();
+    const geoDatos = await geoRespuesta.json();
     
-    // Extraer solo los datos que necesitamos
+    if (!geoDatos.results || geoDatos.results.length === 0) {
+      throw new Error(`Ciudad "${ciudad}" no encontrada. Verifica el nombre.`);
+    }
+
+    const { latitude, longitude, name, country } = geoDatos.results[0];
+
+    // 2. Obtener el clima usando las coordenadas
+    const climaUrl = `${BASE_URL}?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,weather_code&timezone=auto`;
+    const climaRespuesta = await fetch(climaUrl);
+    
+    if (!climaRespuesta.ok) {
+      throw new Error(`Error al obtener clima: ${climaRespuesta.status}`);
+    }
+
+    const climaDatos = await climaRespuesta.json();
+    
+    // Mapear el código de clima a descripción en español
+    const weatherDescriptions: Record<number, string> = {
+      0: 'Cielo despejado',
+      1: 'Mayormente despejado',
+      2: 'Parcialmente nublado',
+      3: 'Nublado',
+      45: 'Niebla',
+      48: 'Niebla con escarcha',
+      51: 'Llovizna ligera',
+      53: 'Llovizna moderada',
+      55: 'Llovizna intensa',
+      61: 'Lluvia ligera',
+      63: 'Lluvia moderada',
+      65: 'Lluvia intensa',
+      71: 'Nieve ligera',
+      73: 'Nieve moderada',
+      75: 'Nieve intensa',
+      80: 'Chubascos ligeros',
+      81: 'Chubascos moderados',
+      82: 'Chubascos intensos',
+      95: 'Tormenta eléctrica',
+      96: 'Tormenta con granizo ligero',
+      99: 'Tormenta con granizo intenso',
+    };
+
+    const weatherCode = climaDatos.current?.weather_code ?? 0;
+    const descripcion = weatherDescriptions[weatherCode] || 'Clima desconocido';
+
     return {
-      temperatura: Math.round(datos.main.temp), // Temperatura en °C
-      sensacion: Math.round(datos.main.feels_like), // Sensación térmica en °C
-      descripcion: datos.weather[0].description, // Descripción del clima
-      humedad: datos.main.humidity, // Humedad en %
-      ciudad: datos.name, // Nombre de la ciudad
-      pais: datos.sys.country, // Código del país
-      icono: datos.weather[0].icon, // Código del ícono
+      temperatura: Math.round(climaDatos.current?.temperature_2m ?? 0),
+      sensacion: Math.round(climaDatos.current?.temperature_2m ?? 0), // Open-Meteo no da sensación térmica, usamos la misma temperatura
+      descripcion: descripcion,
+      humedad: climaDatos.current?.relative_humidity_2m ?? 0,
+      ciudad: name || ciudad,
+      pais: country || '',
+      icono: '', // No tenemos iconos en Open-Meteo, lo dejamos vacío
     };
   } catch (error) {
-    // Si el error ya es un Error, lo relanzamos; si no, creamos uno nuevo
     if (error instanceof Error) {
       throw error;
     } else {
