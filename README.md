@@ -12,9 +12,9 @@ Sistema de gestión para el grupo de bastoneras **Silver Spirit**. Permite a la 
 
 ## Capturas de pantalla
 
-*(Las capturas se agregarán después del deploy)*
-
----
+| Página principal | Registro | Panel de administración |
+| :---: | :---: | :---: |
+| ![Página principal](./screenshots/home.png) | ![Registro](./screenshots/registro.png) | ![Panel de administración](./screenshots/admin.png) |
 
 ## Stack tecnológico
 
