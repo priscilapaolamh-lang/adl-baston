@@ -12,10 +12,6 @@ Sistema de gestión para el grupo de bastoneras **Silver Spirit**. Permite a la 
 
 ## Capturas de pantalla
 
-| Pantalla principal | Registro | Panel de administración |
-| :---: | :---: | :---: |
-| ![Pantalla principal](./screenshots/home.png) | ![Registro](./screenshots/registro.png) | ![Admin](./screenshots/admin.png) |
-
 *(Las capturas se agregarán después del deploy)*
 
 ---
@@ -27,7 +23,7 @@ Sistema de gestión para el grupo de bastoneras **Silver Spirit**. Permite a la 
 - **Tailwind CSS**
 - **Supabase** (PostgreSQL + Autenticación)
 - **Vercel** (Despliegue)
-- **OpenWeatherMap API** (Clima en tiempo real)
+- **Open-Meteo API** (Clima en tiempo real)
 
 ---
 
