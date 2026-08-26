@@ -6,7 +6,7 @@ Sistema de gestión para el grupo de bastoneras **Silver Spirit**. Permite a la 
 
 ## Demo en vivo
 
-[https://adl-baston.vercel.app](https://adl-baston.vercel.app)
+[Ver video de defensa](https://ister-my.sharepoint.com/:v:/g/personal/priscila_montenegro_ister_edu_ec/IQC1vLQEX6TsSbzS8SCsuTgzAYMxdHANpXtOuq0wUIaj3BM?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=t2H6Zh)
 
 ---
 
